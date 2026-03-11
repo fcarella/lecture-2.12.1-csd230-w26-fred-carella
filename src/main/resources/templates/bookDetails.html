@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <title>Book Details</title>
+
+</head>
+
+<body>
+
+<h1>Book Details</h1>
+
+<div th:if="${book}">
+
+    <p><strong>ID:</strong> <span th:text="${book.id}"></span></p>
+
+    <p><strong>Title:</strong> <span th:text="${book.title}"></span></p>
+
+    <p><strong>Author:</strong> <span th:text="${book.author}"></span></p>
+
+    <p><strong>Price:</strong> <span th:text="${book.price}"></span></p>
+
+    <p><strong>Copies:</strong> <span th:text="${book.copies}"></span></p>
+
+</div>
+
+<div th:unless="${book}">
+
+    <p>No book found.</p>
+
+</div>
+
+<a th:href="@{/books}">Back to List</a>
+
+</body>
+
+</html>

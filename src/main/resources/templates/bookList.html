@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!-- Add the Spring Security Extras namespace -->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Book List</title>
+</head>
+<body>
+<div style="float:right">
+    <!-- Display logged in user -->
+    Logged in as: <span sec:authentication="name">User</span>
+
+    <!-- Logout Form (Must be POST for security) -->
+    <form th:action="@{/logout}" method="post" style="display:inline;">
+        <input type="submit" value="Sign Out"/>
+    </form>
+</div>
+<h1>Book List</h1>
+<p>
+    <a th:href="@{/cart}">View Cart</a>
+</p>
+<table border="1">
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Price</th>
+        <th>Copies</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="book : ${books}">
+        <td th:text="${book.title}"></td>
+        <td th:text="${book.author}"></td>
+        <td th:text="${book.price}"></td>
+        <td th:text="${book.copies}"></td>
+        <td>
+            <a th:href="@{/books/{id}(id=${book.id})}">Details</a>
+
+            <strong><a th:href="@{/cart/add/{id}(id=${book.id})}">Add to Cart</a></strong>
+            <!-- ADMIN ACTIONS: Hidden for normal users -->
+            <span sec:authorize="hasRole('ADMIN')">
+                        | <a th:href="@{/books/edit/{id}(id=${book.id})}">Edit</a>
+                        | <a th:href="@{/books/delete/{id}(id=${book.id})}">Delete</a>
+                    </span>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<br/>
+<!-- Add Book button: Hidden for normal users -->
+<div sec:authorize="hasRole('ADMIN')">
+    <a th:href="@{/books/add}">Add New Book</a>
+</div>
+</body>
+</html>
+
+

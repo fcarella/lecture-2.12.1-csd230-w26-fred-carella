@@ -1,0 +1,16 @@
+# see https://hub.docker.com/_/mysql for environment variables
+# note changes port to 3307
+#
+services:
+  mysql:
+    container_name: 'mysql'
+    image: 'mysql:latest'
+    environment:
+      - 'MYSQL_DATABASE=csd230'
+      - 'MYSQL_PASSWORD=itstudies12345'
+      - 'MYSQL_ROOT_PASSWORD=itstudies12345'
+      - 'MYSQL_USER=fcarella'
+    ports:
+      - '3307:3306'
+    volumes: # stores data in local folder: ./volumes
+      - ./volumes/mysql:/var/lib/mysql
