@@ -5,9 +5,24 @@ const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
     const [token, setToken_] = useState(localStorage.getItem("token"));
 
+    // Helper: Decodes the JWT payload to extract roles
+    const getRolesFromToken = (t) => {
+        if (!t) return [];
+        try {
+            const base64Url = t.split('.')[1];
+            const base64 = base64Url.replace('-', '+').replace('_', '/');
+            const payload = JSON.parse(window.atob(base64));
+            return payload.roles || [];
+        } catch (e) {
+            console.error("Failed to decode token", e);
+            return [];
+        }
+    };
+
+    const roles = useMemo(() => getRolesFromToken(token), [token]);
+
     const setToken = (newToken) => {
         setToken_(newToken);
-        // Synchronously update localStorage so the Axios Interceptor sees it immediately
         if (newToken) {
             localStorage.setItem("token", newToken);
         } else {
@@ -18,9 +33,11 @@ const AuthProvider = ({ children }) => {
     const contextValue = useMemo(
         () => ({
             token,
+            roles,
+            isAdmin: roles.includes("ROLE_ADMIN"),
             setToken,
         }),
-        [token]
+        [token, roles]
     );
 
     return (
@@ -30,8 +47,5 @@ const AuthProvider = ({ children }) => {
     );
 };
 
-export const useAuth = () => {
-    return useContext(AuthContext);
-};
-
+export const useAuth = () => useContext(AuthContext);
 export default AuthProvider;

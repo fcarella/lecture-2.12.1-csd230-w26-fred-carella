@@ -1,19 +1,15 @@
 import { useState } from 'react';
+import { useAuth } from './provider/authProvider';
 
 function Book({ id, title, author, price, onDelete, onUpdate, onAddToCart }) {
+    const { isAdmin } = useAuth(); 
     const [isEditing, setIsEditing] = useState(false);
     const [tempTitle, setTempTitle] = useState(title);
     const [tempAuthor, setTempAuthor] = useState(author);
     const [tempPrice, setTempPrice] = useState(price);
 
     const handleSave = () => {
-        const updatedBook = {
-            id,
-            title: tempTitle,
-            author: tempAuthor,
-            price: parseFloat(tempPrice),
-            copies: 10
-        };
+        const updatedBook = { id, title: tempTitle, author: tempAuthor, price: parseFloat(tempPrice), copies: 10 };
         onUpdate(id, updatedBook);
         setIsEditing(false);
     };
@@ -37,16 +33,15 @@ function Book({ id, title, author, price, onDelete, onUpdate, onAddToCart }) {
                 <p><strong>Author:</strong> {author} | <strong>Price:</strong> ${Number(price).toFixed(2)}</p>
             </div>
             <div className="book-actions">
-                {/* NEW ADD TO CART BUTTON */}
-                <button onClick={() => onAddToCart(id)} style={{ backgroundColor: '#28a745', color: 'white' }}>
-                    🛒 Add to Cart
-                </button>
-                <button onClick={() => setIsEditing(true)} style={{ backgroundColor: '#ffc107' }}>Edit</button>
-                <button onClick={() => onDelete(id)} style={{ backgroundColor: '#ff4444', color: 'white' }}>Delete</button>
+                <button onClick={() => onAddToCart(id)} style={{ backgroundColor: '#28a745', color: 'white' }}>🛒 Add to Cart</button>
+                {isAdmin && (
+                    <>
+                        <button onClick={() => setIsEditing(true)} style={{ backgroundColor: '#ffc107' }}>Edit</button>
+                        <button onClick={() => onDelete(id)} style={{ backgroundColor: '#ff4444', color: 'white' }}>Delete</button>
+                    </>
+                )}
             </div>
         </div>
     );
 }
-
 export default Book;
-

@@ -26,34 +26,37 @@ import java.util.stream.Collectors;
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-
-    // Locally initialized to avoid Bean UnsatisfiedDependencyException during early startup
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
 
     public JwtAuthorizationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
+        this.mapper = new ObjectMapper();
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
         try {
-            // 1. Resolve token from Authorization Header (Bearer ...)
+            // 1. Extract the token from the Authorization header
             String accessToken = jwtUtil.resolveToken(request);
 
-            // 2. If no token is found, move to the next filter (allows Basic Auth or Form Login to take over)
+            // 2. If no token is provided, continue to the next filter
+            // (Allows permitAll routes to work or falls back to Form Login)
             if (accessToken == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // 3. Resolve and Validate Claims
+            // 3. Resolve and Validate the JWT Claims
+            // If the token is expired, this method throws an ExpiredJwtException
             Claims claims = jwtUtil.resolveClaims(request);
 
             if (claims != null && jwtUtil.validateClaims(claims)) {
                 String email = claims.getSubject();
 
-                // 4. Extract Roles from JWT and convert to Spring Security Authorities
-                // This is crucial so that .hasRole("ADMIN") works in your config
+                // 4. Extract Roles from the JWT Claims
+                // This converts the JSON list ["ROLE_ADMIN"] into Spring Security Authorities
                 List<String> roles = (List<String>) claims.get("roles");
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
@@ -63,27 +66,32 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                             .collect(Collectors.toList());
                 }
 
-                // 5. Create Authentication Token and set it in the Security Context
+                // 5. Create an Authentication object and set it in the Security Context
+                // This tells Spring Boot: "This user is authenticated and has these roles"
                 Authentication authentication =
                         new UsernamePasswordAuthenticationToken(email, "", authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
 
         } catch (Exception e) {
-            // 6. If token is expired or invalid, return a clean JSON error response
+            // 6. ERROR HANDLING: This is critical for the React Interceptor
+            // If the token is expired or invalid, we return a JSON error response
             Map<String, Object> errorDetails = new HashMap<>();
             errorDetails.put("message", "Authentication Error");
             errorDetails.put("details", e.getMessage());
 
-            response.setStatus(HttpStatus.FORBIDDEN.value());
+            // FIX: Explicitly set status to 401 Unauthorized
+            // so the Axios interceptor catches it.
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
             mapper.writeValue(response.getWriter(), errorDetails);
-            return; // Stop filter chain execution
+
+            // Return immediately to stop the rest of the filter chain
+            return;
         }
 
         // Continue the filter chain
         filterChain.doFilter(request, response);
     }
 }
-
