@@ -21,7 +21,7 @@ public class JwtUtil {
      * Set this to 10 for expiration testing.
      * Set to 3600 for 1-hour session in a production-like environment.
      */
-    private long accessTokenValidity = 10;
+    private long accessTokenValidity = 3600;
 
     private final JwtParser jwtParser;
     private final String TOKEN_HEADER = "Authorization";
