@@ -1,6 +1,6 @@
 # mobile
 - [uses this backend : https://github.com/fcarella/lecture-2.12.1-csd230-w26-fred-carella](https://github.com/fcarella/lecture-2.12.1-csd230-w26-fred-carella)
-- A new Flutter project.
+- A new Flutter project winter 2026.
 
 ## Getting Started
 
